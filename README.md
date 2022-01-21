@@ -7,9 +7,9 @@ Research project on Probability&Statistics course at UCU
 This is a research project on the alcohol consumption among students. The datasets used are taken from  kaggle (link provided).
 The report shows the dependencies of the level of alcohol consumption among american students on different factors, e.g. age,social life, time spent on studies, etc. The level of alcohol consumption were recorded both on workdays and weekends, providing more precise data and more hypothesis to analyse.
 
-The report is available [here](https://github.com/linvieson/alcohol-consumption-research/blob/main/Voronina-Havryliv.pdf) as pdf file.
+The report is available [here](https://github.com/linvieson/alcohol-consumption-research/blob/main/Report.pdf) as pdf file.
 
-The original datasets are available [by this link](https://www.kaggle.com/uciml/student-alcohol-consumption) and in [datasets folder]() on the repository.
+The original datasets are available [by this link](https://www.kaggle.com/uciml/student-alcohol-consumption) and in [datasets folder](https://github.com/linvieson/alcohol-consumption-research/tree/main/datasets) on the repository.
 
 ## Conclusion
 
