@@ -1,0 +1,378 @@
+---
+title: 'Research project: Alcohol Consumption between Students'
+output:
+  pdf_document:
+    toc: yes
+  html_notebook:
+    fig_caption: yes
+    toc: yes
+  word_document:
+    toc: yes
+  html_document: default
+editor_options:
+  chunk_output_type: inline
+---
+
+## Team members: Alina Voronina, Anastasiia Havryliv
+
+## Goal of the project
+
+We want to analyze the factors that influence alcohol consumption between students, and see dependence and/or correlation between them.
+
+## Data
+
+We use a dataset from kaggle (student-mat.csv) available by the following link:
+https://www.kaggle.com/uciml/student-alcohol-consumption
+
+<hr/>
+
+## Remarks
+In the report, we will use the following notions:
+
+- Dalc - level of students' alcohol consumption on workdays
+- Walc - level of students' alcohol consumption on weekends
+
+
+All other notions are explained in the database context by the above link.
+
+- student-mat.csv dataset - used for training
+- student-por.csv dataset - used once for testing the linear regression model
+
+
+<hr/>
+
+Packages that are to be used:
+
+```{r}
+require(ggplot2)
+library(ggplot2)
+```
+
+
+<hr/>
+
+## Data processing
+
+We substitute all non-numeric values with numeric ones, because that will facilitate the data processing later. We also drop some columns (as school name, address, etc) that complicate the analysis and do not allow to precisely process other information (it is almost impossible to find correlations between unprocessed strings and numeric values).
+
+dropped columns: school (1), address (4), mjob (9), fjob(10), reason (11), guardian (12)
+
+```{r}
+data = read.csv("student-mat.csv")
+
+data = data[-c(1, 4, 9, 10, 11, 12)]
+
+data$sex = ifelse(data$sex == "M", as.integer(0), as.integer(1))
+data$famsize = ifelse(data$famsize == "LE3", as.integer(0), as.integer(1))
+data$Pstatus = ifelse(data$Pstatus == "A", as.integer(0), as.integer(1))
+
+data$schoolsup = ifelse(data$schoolsup == "no", as.integer(0), as.integer(1))
+data$famsup = ifelse(data$famsup == "no", as.integer(0), as.integer(1))
+data$paid = ifelse(data$paid == "no", as.integer(0), as.integer(1))
+data$activities = ifelse(data$activities == "no", as.integer(0), as.integer(1))
+data$nursery = ifelse(data$nursery == "no", as.integer(0), as.integer(1))
+data$higher = ifelse(data$higher == "no", as.integer(0), as.integer(1))
+data$internet = ifelse(data$internet == "no", as.integer(0), as.integer(1))
+data$romantic = ifelse(data$romantic == "no", as.integer(0), as.integer(1))
+
+head(data)
+
+```
+
+Let's look at the Dalc and Walc distribution.
+
+```{r}
+hist(data$Dalc, col="darkseagreen3", border="white", main="Distribution of Dalc", xlab = "Level of alcohol consumption on workdays")
+
+```
+
+```{r}
+hist(data$Walc, col="darkseagreen3", border="white", main="Distribution of Walc", xlab = "Level of alcohol consumption on weekends")
+
+```
+Conclusion: students drink way too much on weekends!
+
+<hr/>
+
+## Finding correlations
+
+Now we want to find correlation between Dalc/Walc and other factors.
+```{r}
+correlation = cor(data)
+
+cat("Correlation on workdays\n\n")
+print(sort(abs(correlation[, "Dalc"])))
+
+cat("\n\n")
+
+cat("Correlation on weekends\n\n")
+print(sort(abs(correlation[, "Walc"])))
+
+```
+As we can see, Walc and Dalc mostly correlate with sex, goout, studytime, and freetime.
+
+- Dalc also correlates with traveltime, failures and age.
+
+- Walc also correlates with failures, absences and traveltime.
+
+
+We can also spot some interesting facts:
+- On workdays your gender has more importance than the frequency you go out, meanwhile on weekends the more you go out the more likely you are to drink :)
+
+- On workdays students tend to get drunk because of having more freetime, meanwhile on weekends - because of studying too much :)
+
+Surpisingly, parents' status, education and other family factors show so little correlation.
+
+<hr/>
+
+## Displaying the influence of different factors
+
+### Gender
+
+```{r}
+ggplot(data,aes(x=sex, fill=factor(Dalc))) + geom_density(alpha=0.5)+
+ xlab(label = "gender")+
+ ggtitle("Distribution of gender in Dalc")+
+ theme_minimal()
+```
+```{r}
+ggplot(data,aes(x=sex, fill=factor(Walc))) + geom_density(alpha=0.5)+
+ xlab(label = "gender")+
+ ggtitle("Distribution of gender in Walc")+
+ theme_minimal()
+```
+
+Remembering that 0 is for male, 1 is for female, we can see, that women do not get as drunk as man. It can be notices that on weekends both men and women drink way more than on workdays.
+
+### Going out
+
+```{r}
+ggplot(data,aes(x=goout, fill=factor(Dalc))) + geom_density(alpha=0.5)+
+ xlab(label = "goout")+
+ ggtitle("Distribution of goout in Dalc")+
+ theme_minimal()
+```
+
+```{r}
+ggplot(data,aes(x=goout, fill=factor(Walc))) + geom_density(alpha=0.5)+
+ xlab(label = "goout")+
+ ggtitle("Distribution of goout in Walc")+
+ theme_minimal()
+```
+Again, on weekends the level of alcohol consumption is skyrocketing.
+
+
+### Studytime
+
+```{r}
+ggplot(data,aes(x=studytime, fill=factor(Dalc))) + geom_density(alpha=0.5)+
+ xlab(label = "studytime")+
+ ggtitle("Distribution of studytime in Dalc")+
+ theme_minimal()
+```
+
+```{r}
+ggplot(data,aes(x=studytime, fill=factor(Walc))) + geom_density(alpha=0.5)+
+ xlab(label = "studytime")+
+ ggtitle("Distribution of studytime in Walc")+
+ theme_minimal()
+```
+
+People who study more, have higher level of alcohol consumption on workdays (no jokes about programmers constantly drinking beer).
+
+### Freetime
+
+
+```{r}
+ggplot(data,aes(x=freetime, fill=factor(Dalc))) + geom_density(alpha=0.5)+
+ xlab(label = "freetime")+
+ ggtitle("Distribution of freetime in Dalc")+
+ theme_minimal()
+```
+
+```{r}
+ggplot(data,aes(x=freetime, fill=factor(Walc))) + geom_density(alpha=0.5)+
+ xlab(label = "freetime")+
+ ggtitle("Distribution of freetime in Walc")+
+ theme_minimal()
+```
+
+The plots are very similar. We can see that on the weekends the level of alcohol consumption rises a bit.
+
+<hr/>
+
+## Testing the hypothesis
+
+### Dependence on studytime
+
+Taking the above plots into consideration, it would be interesting to test the dependence of studytime and Dalc/Walc.
+
+Firstly, let's introduce the following hypothesis:
+
+\(H_0\): Level of alcohol consumption does not depend on studytime.
+\(H_1\): Level of alcohol consumption depends on studytime.
+
+As long as we need to test whether the two characteristics are (in)dependent, we will use the chi-squared test for independence.
+
+The value of the test statistics in chi-square test is the next:
+\(\chi^2 = \sum_{i=1}^{rows} \sum_{j=1}^{columns} \frac{o_{ij} - e_{ij}}{e_{ij}}\)
+
+where \(o_{}ij\) is the observed value, \(e_{ij}\) is the predicted/expected value.
+
+Under \(H_0\) this statistics has approximate distribution \(\chi_r^2\) with \(r\) degrees of freedom. In this case, we have \((rows-1)(columns-1)\)degrees of freedom. Thus, we need to compare the above statistics with \(\chi^2_{(rows-1)(columns-1)}\), calculate the p-value and make conclusions based on that.
+
+
+
+To perform chi-squared test, we need to form a dataframe first. Rows are in charge of studytime, columns are in charge of Dalc.
+
+
+```{r}
+studytimes = sort(unique(data$studytime))
+dalcdf = data.frame(matrix(ncol = 5, nrow = length(studytimes)))
+dalcdf[is.na(dalcdf)] = 0
+
+colnames(dalcdf) = c('1', '2', '3', '4','5')
+rownames(dalcdf) = studytimes
+
+for (row in 1:nrow(data)) {
+  dlevel = data[row, "Dalc"]
+  stime = data[row, "studytime"]
+  dalcdf[stime, dlevel] = dalcdf[stime, dlevel] + 1
+}
+
+```
+
+Then we will apply the chi-square test to the obtained dataframe.
+
+
+```{r}
+chisq = chisq.test(dalcdf)
+print(chisq)
+```
+
+We can notice that the p-value is small enough to reject the null hypothesis. Therefore, we can assume that the Dalc level is dependent on the studytime.
+
+Now let's perform the same test, but to find whether Walc is dependent on studytime.
+
+```{r}
+studytimes = sort(unique(data$studytime))
+walcdf = data.frame(matrix(ncol = 5, nrow = length(studytimes)))
+walcdf[is.na(walcdf)] = 0
+
+colnames(walcdf) = c('1', '2', '3', '4','5')
+rownames(walcdf) = studytimes
+
+for (row in 1:nrow(data)) {
+  dlevel = data[row, "Walc"]
+  stime = data[row, "studytime"]
+  walcdf[stime, dlevel] = walcdf[stime, dlevel] + 1
+}
+
+```
+
+Performing the chi-square test.
+
+```{r}
+chisq = chisq.test(walcdf)
+print(chisq)
+```
+
+We see that the p-value is even smaller than in the previous case with Dalc. That means that we reject the null hypothesis again, meaning Walc depends on the studytime.
+
+
+### Conclusions
+
+Level of students' alcohol consumption on workdays (Dalc) depends on studytime.
+
+Level of students' alcohol consumption on weekends (Walc) depends on studytime.
+
+
+<hr/>
+
+## Linear regression
+
+We will train the model on students-mat.csv dataset (the one we used everywhere before), and test the model on students-por.csv dataset (available by the same link in the beginning).
+
+Firstly, a little data processing.
+
+```{r}
+test = read.csv("student-por.csv")
+test = test[-c(1, 4, 9, 10, 11, 12)]
+test$sex = ifelse(test$sex == "M", as.integer(0), as.integer(1))
+
+```
+
+
+Let's now perform linear regression by developing a model.
+
+In this sections we create a model for further prediction of workday alcohol consumption, based on the following factors: sex, go out time, study time, and free time.
+
+And we can see the summary with all the estimators for this model, which will help with predictions.
+
+```{r}
+model = lm(Dalc ~ sex + goout + studytime + freetime, data=data)
+summary(model)
+```
+
+Here we test the accuracy of our model, and we see that it is not very close to 1, and it is because we don't take some factors into consideration (because they have very low impact and make our calculations more complicated).
+
+```{r}
+pred <- c(as.integer(predict(model, newdata = test)))
+count = sum(c(ifelse(test$Dalc == pred, 1, 0)))
+accuracy = count/nrow(test)
+accuracy
+```
+
+Here we start with the predictions for workday alcohol consumption. We assume that user inputs some data, then we create a single-row database, which represents this input. With the help of the model we predict the level of Dalc that the user has. 
+
+For example, let's assume user entered the next data:
+
+- sex: 1 (F)
+- studytime: 2
+- goout: 1
+- freetime: 5
+
+```{r}
+# Data input started
+sex <- as.integer(1)
+studytime <- as.integer(2)
+goout <- as.integer(1)
+freetime <- as.integer(5)
+# Data input ended
+
+newdata = data.frame(sex, studytime, goout, freetime)
+
+prediction <- predict(model, newdata = newdata)
+
+if (prediction < 0){
+  prediction <- 0
+}
+
+if (prediction > 5){
+  prediction <- 5
+}
+
+cat("Prediction of weekday alcohol consumption:", prediction)
+```
+The same manipulations can be done to predict the Walc level.
+
+
+<hr/>
+
+
+## Conclusions 
+
+We displayed the correlation between different factors and Dalc/Walc. Having plotted some graphs, we indeed saw those correlations, and assumed that the most significant factors were sex, goout, studytime and freetime.
+
+
+Our aim was to test the dependency of Dalc/Walc on the above factors. We decided to take studytime factor for that, as we thought that it will be the most interesting to see the dependency of the time student spends studying on their level of alcohol consumption. As a result, we saw that Dalc/Walc indeed depend on studytime.
+
+We implemented a linear regression model to predict the alcohol consumption level. We trained it on students-mat.csv dataset and tested on the students-por.csv one. The model turned out to be approximately 60% accurate. The reason for that is that we took only most correlated features (which we estimated at the beginning) into consideration, and even those features did not show correlation, very close to +-1. We also did not consider all 30+ factors. Moreover, the model predicts a float value in range from 1 to 5, and the actual value is an integer, so we needed to round the result - that also decreased the accuracy in some way. Thus, we have such a score.
+
+We also implemented the prediction for user's data. By changing the values, the user can see their alcohol consumption level.
+
+Happy holidays! :)
+
+
+
+
