@@ -1,6 +1,6 @@
 # Alcohol Consumption Research
 
-Research project on Probability&Statistics course at UCU
+Research project on Probability & Statistics course at UCU.
 
 ## About
 
